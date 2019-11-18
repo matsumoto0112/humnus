@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+using UnityEngine.UI;
+
 public class TouchManager : MonoBehaviour
 {
     //タッチ状態の列挙型
@@ -14,6 +16,11 @@ public class TouchManager : MonoBehaviour
         Canceled,
         None
     };
+    //現在の状態
+    touchStatus currentTouchStatus;
+
+    [SerializeField, Header("フリック判定距離")]
+    float flickDistance;
 
 
     // Start is called before the first frame update
@@ -25,7 +32,6 @@ public class TouchManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Debug.Log(GetPositions()[0]);
     }
     
     /// <summary>
@@ -33,7 +39,36 @@ public class TouchManager : MonoBehaviour
     /// </summary>
     void GetTouch()
     {
+        if (GetTouchCnt() == 0)
+        {
+            currentTouchStatus = touchStatus.None;
+            return;
+        }
 
+        Touch touch = Input.GetTouch(0);
+
+        switch (touch.phase)
+        {
+            case (TouchPhase.Began):
+                currentTouchStatus = touchStatus.Begin;
+                break;
+
+            case (TouchPhase.Moved):
+                currentTouchStatus = touchStatus.Moved;
+                break;
+
+            case (TouchPhase.Stationary):
+                currentTouchStatus = touchStatus.Stationary;
+                break;
+
+            case (TouchPhase.Ended):
+                currentTouchStatus = touchStatus.Ended;
+                break;
+
+            case (TouchPhase.Canceled):
+                currentTouchStatus = touchStatus.Canceled;
+                break;
+        }
     }
 
     /// <summary>
@@ -117,9 +152,17 @@ public class TouchManager : MonoBehaviour
     /// </summary>
     /// <param name="start">始点</param>
     /// <param name="end">終点</param>
-    /// <returns></returns>
+    /// <returns>フリック判定</returns>
     bool isFlick(ref Vector2 start, ref Vector2 end)
     {
+        if (currentTouchStatus == touchStatus.Begin)
+            start = Input.GetTouch(0).position;
+        if (currentTouchStatus == touchStatus.Ended)
+            end = Input.GetTouch(0).position;
+
+        if (Vector2.Distance(start, end) <= flickDistance)
+            return false;
+
         return true;
     }
 }
