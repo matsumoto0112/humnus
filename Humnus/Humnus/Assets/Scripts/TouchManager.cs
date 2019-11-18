@@ -9,7 +9,7 @@ public class TouchManager : MonoBehaviour
     //タッチ状態の列挙型
     enum touchStatus
     {
-        Begin,
+        Began,
         Moved,
         Stationary,
         Ended,
@@ -22,6 +22,8 @@ public class TouchManager : MonoBehaviour
     [SerializeField, Header("フリック判定距離")]
     float flickDistance;
 
+    Vector2 start;
+    Vector2 end;
 
     // Start is called before the first frame update
     void Start()
@@ -32,43 +34,55 @@ public class TouchManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        Debug.Log(isFlick(ref start, ref end));
     }
-    
+
     /// <summary>
     /// タッチ状態の取得
     /// </summary>
-    void GetTouch()
+    touchStatus GetTouchStatus()
     {
-        if (GetTouchCnt() == 0)
+        if (!Application.isEditor)
         {
-            currentTouchStatus = touchStatus.None;
-            return;
+            if (Input.touchCount == 0)
+                return touchStatus.None;
+
+            Touch touch = Input.GetTouch(0);
+
+            switch (touch.phase)
+            {
+                case (TouchPhase.Began):
+                    return touchStatus.Began;
+
+                case (TouchPhase.Moved):
+                    return touchStatus.Moved;
+
+                case (TouchPhase.Stationary):
+                    return touchStatus.Stationary;
+
+                case (TouchPhase.Ended):
+                    return touchStatus.Ended;
+
+                case (TouchPhase.Canceled):
+                    return touchStatus.Canceled;
+            }
         }
 
-        Touch touch = Input.GetTouch(0);
-
-        switch (touch.phase)
+        if (Input.GetMouseButtonDown(0))
+            return touchStatus.Began;
+        if (Input.GetMouseButton(0))
         {
-            case (TouchPhase.Began):
-                currentTouchStatus = touchStatus.Begin;
-                break;
-
-            case (TouchPhase.Moved):
-                currentTouchStatus = touchStatus.Moved;
-                break;
-
-            case (TouchPhase.Stationary):
-                currentTouchStatus = touchStatus.Stationary;
-                break;
-
-            case (TouchPhase.Ended):
-                currentTouchStatus = touchStatus.Ended;
-                break;
-
-            case (TouchPhase.Canceled):
-                currentTouchStatus = touchStatus.Canceled;
-                break;
+            end = Input.mousePosition;
+            return touchStatus.Moved;
         }
+        if (Input.GetMouseButtonUp(0))
+        {
+            start = Vector3.zero;
+            end = Vector3.zero;
+            return touchStatus.Ended;
+        }
+
+        return touchStatus.None;
     }
 
     /// <summary>
@@ -141,10 +155,9 @@ public class TouchManager : MonoBehaviour
 
             return 0;
         }
+
         else
-        {
             return Input.touchCount;
-        }
     }
 
     /// <summary>
@@ -155,14 +168,19 @@ public class TouchManager : MonoBehaviour
     /// <returns>フリック判定</returns>
     bool isFlick(ref Vector2 start, ref Vector2 end)
     {
-        if (currentTouchStatus == touchStatus.Begin)
-            start = Input.GetTouch(0).position;
-        if (currentTouchStatus == touchStatus.Ended)
+        if (GetTouchStatus() == touchStatus.Began)
         {
-            end = Input.GetTouch(0).position;
-            if (Vector2.Distance(start, end) >= flickDistance)
-                return true;
+            if (Application.isEditor)
+                start = Input.mousePosition;
+            else
+                start = Input.GetTouch(0).position;
         }
+
+        // if (GetTouchStatus() == touchStatus.Ended)
+        //end =nput.GetTouch(0).position;
+
+        if (Vector2.Distance(start, end) >= flickDistance)
+            return true;
 
         return false;
     }
