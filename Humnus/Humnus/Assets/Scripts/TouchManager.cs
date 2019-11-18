@@ -158,12 +158,13 @@ public class TouchManager : MonoBehaviour
         if (currentTouchStatus == touchStatus.Begin)
             start = Input.GetTouch(0).position;
         if (currentTouchStatus == touchStatus.Ended)
+        {
             end = Input.GetTouch(0).position;
+            if (Vector2.Distance(start, end) >= flickDistance)
+                return true;
+        }
 
-        if (Vector2.Distance(start, end) <= flickDistance)
-            return false;
-
-        return true;
+        return false;
     }
 }
 
