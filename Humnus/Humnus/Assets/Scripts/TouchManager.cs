@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-using UnityEngine.UI;
-
+/// <summary>
+/// 入力管理クラス
+/// </summary>
 public class TouchManager : MonoBehaviour
 {
     //タッチ状態の列挙型
@@ -16,21 +17,13 @@ public class TouchManager : MonoBehaviour
         Canceled,
         None
     };
-    //現在の状態
-    touchStatus currentTouchStatus;
 
     [SerializeField, Header("フリック判定距離")]
     float flickDistance;
 
     Vector2 start;
     Vector2 end;
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
+    
     // Update is called once per frame
     void Update()
     {
@@ -55,15 +48,20 @@ public class TouchManager : MonoBehaviour
                     return touchStatus.Began;
 
                 case (TouchPhase.Moved):
+                    end = Input.mousePosition;
                     return touchStatus.Moved;
 
                 case (TouchPhase.Stationary):
                     return touchStatus.Stationary;
 
                 case (TouchPhase.Ended):
+                    start = Vector3.zero;
+                    end = Vector3.zero;
                     return touchStatus.Ended;
 
                 case (TouchPhase.Canceled):
+                    start = Vector3.zero;
+                    end = Vector3.zero;
                     return touchStatus.Canceled;
             }
         }
