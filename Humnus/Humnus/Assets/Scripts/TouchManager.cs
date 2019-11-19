@@ -184,7 +184,6 @@ public class TouchManager : MonoBehaviour
     }
 }
 
-public static class Wrapper
+public static class InputWrapper
 {
-
 }
